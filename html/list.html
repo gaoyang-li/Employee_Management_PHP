@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Employee List</title>
+    <script src="../js/jquery-3.6.1.min.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <h1>Employee List</h1>
+    <div class="button_item">
+        <button onclick="add()">Add New Employee</button>
+        <button onclick="birthday()">displays all employees whose birthday is in the current calendar month</button>
+    </div>
+    <div class="search_list">
+        <input class="emp_id" placeholder="Input emp_id Search ">
+        department:
+        <select class="department"></select>
+        emergency_relationship:
+        <select class="emergency_relationship">
+            <option></option>
+            <option>Father</option>
+            <option>Mother</option>
+            <option>Husband</option>
+            <option>Wife</option>
+            <option>Girlfriend</option>
+            <option>Boyfriend</option>
+            <option>Civil Partner</option>
+        </select>
+        <button onclick="search()">search</button>
+    </div>
+    <table border="1" id="table" cellspacing=0></table>
+</body>
+
+</html>
+
+<script type="text/javascript">
+    $.post("../api.php", {
+        'action': 'department'
+    }, function (data) {
+        if (data.code == 200) {
+            var leng = data.data.length;
+            var returnData = data.data;
+
+            var op = " <option></option>";
+            for (var i = 0; i < leng; i++) {
+                op += "<option value='" + returnData[i][0] + "'>" + returnData[i][1] + "</option>";
+            }
+            $(".department").html(op)
+        }
+    }, 'json');
+    
+    function update(id) {
+        window.location.href = "updateEmp.php?emp_id=" + id;
+    }
+    
+    function deletes(id) {
+        $.post("../api.php", {
+            'emp_id': id,
+            'action': 'delete'
+        }, function (data) {
+            alert(data.errorMsg);
+            getList();
+        }, 'json');
+
+    }
+    
+    function add() {
+        window.location.href = "addEmp.html";
+    }
+    
+    function birthday() {
+        window.location.href = "birthlist.php";
+    }
+    
+    function search() {
+        var emp_id = $(".emp_id").val();
+        var department = $(".department").val();
+        var emergency_relationship = $(".emergency_relationship").val();
+        console.log(emp_id, department, emergency_relationship);
+        getList(emp_id, department, emergency_relationship);
+
+    }
+    
+    function getList(keywords = '', department, emergency_relationship) {
+        $.post("../api.php", {
+            'emp_id': keywords,
+            'department': department,
+            'emergency_relationship': emergency_relationship,
+            'action': 'lists'
+        }, function (data) {
+            if (data.code == 100) {
+                alert(data.errorMsg);
+                window.location.href = "login.html";
+            }
+            if (data.code == 200) {
+                var leng = data.data.length;
+                var returnData = data.data;
+                var tr = "<tr>\n" +
+                    "        <th>emp_id</th>\n" +
+                    "        <th>name</th>\n" +
+                    "        <th>address</th>\n" +
+                    "        <th>salary</th>\n" +
+                    "        <th>dob</th>\n" +
+                    "        <th>nin</th>\n" +
+                    "        <th>department</th>\n" +
+                    "        <th>emergency_name</th>\n" +
+                    "        <th>emergency_relationship</th>\n" +
+                    "        <th>emergency_phone</th>\n" +
+                    "        <th>manager_name</th>\n" +
+                    "        <th>operation</th>\n" +
+                    "    </tr>";
+                for (var i = 0; i < leng; i++) {
+                    tr += " <tr>" +
+                        "            <td>" + returnData[i][0] + "</td>\n" +
+                        "            <td>" + returnData[i][1] + "</td>" +
+                        "            <td>" + returnData[i][2] + "</td>" +
+                        "            <td>" + returnData[i][3] + "</td>" +
+                        "            <td>" + returnData[i][4] + "</td>" +
+                        "            <td>" + returnData[i][5] + "</td>" +
+                        "            <td>" + returnData[i][6] + "</td>" +
+                        "            <td>" + returnData[i][7] + "</td>" +
+                        "            <td>" + returnData[i][8] + "</td>" +
+                        "            <td>" + returnData[i][9] + "</td>" +
+                        "            <td>" + returnData[i]['manager_name'] + "</td>" +
+                        " <td><button onclick=\"update(\'" + returnData[i][0] + "\')\">update</button> <button onclick=\"deletes(\'" + returnData[i][0] + "\')\">delete</button></td>" +
+                        "        </tr>"
+                }
+                $("#table").html(tr)
+            }
+        }, 'json');
+    }
+    $(function () {
+        getList();
+    })
+</script>
+
+<style>
+    html,
+    body {
+        padding: 15px 20px;
+        font-family: 'Open Sans', Arial, Helvetica, sans-serif;
+        font-size: 15px;
+        color: #6d6d6d;
+    }
+
+    .search_list {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+</style>
